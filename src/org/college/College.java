@@ -11,7 +11,7 @@ public class College {
     }
 
     public void collegeRank(){
-        System.out.printls("College Rank: 10(demostration value)");
+        System.out.println("College Rank: 10(demostration value)");
     }
 
 
