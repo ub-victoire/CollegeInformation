@@ -1,314 +1,179 @@
-# Day 2 — Inheritance and access control
-## Task 1: CollegeInformation
+# College Information: Inheritance and Access Control in Java
 
-## 1. Understand what has changed
+This project is a practical introduction to **multilevel inheritance** and **access control** in Java. It uses a small college example to show how one object can call methods declared in several classes.
 
-In Day 1, you created separate objects to call methods from separate classes:
+The project is a learning exercise, not a complete college management system. Its methods print fixed example values; they do not store or retrieve student records.
 
-```java
-var college = new College();
-college.collegeName();
-```
+## Learning objectives
 
-For this task, we will connect classes using `extends`. A `Student` object will be able to call methods inherited through its superclass chain, as well as its own methods.
+After working through this lesson, you should be able to:
 
-The assignment requires:
+1. Explain classes, objects, and instance methods.
+2. Identify direct and indirect superclasses in an inheritance chain.
+3. Use `extends` to create a subclass and call inherited methods.
+4. Describe Java's four member access levels.
+5. Compile and run Java classes organized in a package.
+6. Recognize when inheritance is appropriate and when another relationship is a better fit.
 
-| Class name as supplied | Methods as supplied |
-|---|---|
-| `College` | `collegeName()`, `collegeCode()`, `collegeRank()` |
-| `Student` | `studentName()`, `studentDept()`, `studentId()` |
-| `Hostel` | `HostelName()` |
-| `dept` | `deptName()` |
+## Before you start
 
-That is **four classes and eight instance methods**.
+You should be familiar with basic Java syntax, methods, and running commands in a terminal. You need a JDK (Java Development Kit) with `javac` and `java` available on your `PATH`.
 
-### Naming decision
+The project uses `var` for a local variable, so **JDK 10 or later** is required. No external dependencies or build tools are needed.
 
-The supplied names `dept` and `HostelName()` conflict with standard Java conventions:
-
-- A conventional class name would be `Dept` or `Department`.
-- A conventional method name would be `hostelName()`.
-
-For this submission, we will preserve **`dept`** and **`HostelName()`** exactly to match the stated requirements. Those spellings are legal Java, just nonstandard. Use `dept.java` for the public class `dept`.
-
-If your instructor confirms that conventional renaming is preferred, rename the declarations, filenames where applicable, and all references together. Do not mix the two spellings.
-
-## 2. Choose the multilevel chain
-
-The task does not specify which of the three non-Student classes should be the direct parent of which. We will use this explicit assumption:
-
-```text
-College
-   ↓
-dept
-   ↓
-Hostel
-   ↓
-Student
-```
-
-Here, an arrow means **“is extended by.”** In code:
-
-```java
-public class dept extends College
-public class Hostel extends dept
-public class Student extends Hostel
-```
-
-`Student` is the final subclass. It inherits **five required methods** through its superclass chain and declares **three**, for **eight total required methods**.
-
-The inherited methods are:
-
-- From `College`: three college methods.
-- From `dept`: one department method.
-- From `Hostel`: one hostel method.
-
-### Important design caveat
-
-This chain is an **academic exercise**, not a good real-world domain model. A student is not a type of hostel, and a hostel is not a type of department. In production design, these relationships would normally be represented through object references or composition/association rather than this inheritance chain.
-
-We use this chain only because the question explicitly asks for multilevel inheritance across these four classes. If the instructor supplies a required chain, follow that instead.
-
-## 3. Correct the key lesson misconceptions
-
-### Inheritance is not a heap-memory optimization
-
-Objects are conceptually allocated on the JVM heap, although runtime optimizations may eliminate some allocations. Inheritance does **not** automatically reduce object memory.
-
-A subclass object includes the instance state defined by its superclass hierarchy. In our example, the call:
-
-```java
-var student = new Student();
-```
-
-creates one `Student` instance. It does not create four separate class instances merely because the inheritance chain contains four classes. Superclass constructors participate in initialization, but that does not mean separate parent objects are created.
-
-Method code is not copied into every instance. The important lesson is **reuse and specialization**, not “inheritance saves RAM.”
-
-### A subclass extends one direct superclass
-
-Java classes have a single direct superclass, except `Object`, which has none. A class can have several ancestors through a chain.
-
-The more accurate description of multilevel inheritance is:
-
-> A subclass extends another class that itself extends another class.
-
-It is not several parents accessing a child.
-
-### Multiple class inheritance versus interfaces
-
-Java does not permit a class declaration such as `class C extends A, B`. It does allow a class to implement multiple interfaces. Interfaces provide multiple inheritance of type and can also supply default behavior; conflicting inherited defaults may require an explicit override.
-
-Keep interfaces for a later lesson. This task needs only `extends` between classes.
-
-## 4. Create the project
-
-From your previous `NetworkInformation` project directory:
+Check your installation:
 
 ```bash
-cd ..
-pwd
-mkdir -p CollegeInformation/src/org/college CollegeInformation/.vscode
-cd CollegeInformation
-code .
+java -version
+javac -version
 ```
 
-If your terminal is elsewhere, navigate to the directory where you keep the exercise repositories first.
-
-Source structure:
+## Project structure
 
 ```text
 CollegeInformation/
 ├── .gitignore
-├── README.md
-├── .vscode/
-│   └── settings.json
+├── Readme.md
 └── src/
     └── org/
         └── college/
             ├── College.java
-            ├── dept.java
+            ├── Dept.java
             ├── Hostel.java
             └── Student.java
 ```
 
-All four classes belong to `org.college`, so they need no imports for one another.
+Each source file starts with `package org.college;`. The package groups the classes under the same name, and the directory structure mirrors that name. Since the classes are in the same package, they can refer to each other without imports.
 
-### VS Code settings
+Java is case-sensitive: `Dept` and `dept` are different names. The public class `Dept` is declared in `Dept.java`. The method `HostelName()` also begins with a capital `H`; although `hostelName()` would be more conventional, use the spelling in the source when calling it.
 
-Create `.vscode/settings.json`:
+## 1. Classes, objects, and methods
 
-```json
-{
-    "java.project.sourcePaths": ["src"],
-    "java.project.outputPath": "out"
-}
-```
-
-### Ignore generated files
-
-Create `.gitignore`:
-
-```gitignore
-*.class
-out/
-bin/
-target/
-*~
-*.java.save
-*.log
-```
-
-Keep using your installed JDK 25. No build tool or extra library is needed.
-
-## 5. Implement the chain from top to bottom
-
-All displayed names, codes, and ranks below are fictional demonstration data.
-
-### College.java — the first class
-
-Location: `src/org/college/College.java`
+A **class** defines a type and the behavior its objects can have. An **object** is an instance of a class. An **instance method** is called on an object:
 
 ```java
-package org.college;
-
-public class College {
-
-    public void collegeName() {
-        System.out.println("College Name: Example College");
-    }
-
-    public void collegeCode() {
-        System.out.println("College Code: COL001");
-    }
-
-    public void collegeRank() {
-        System.out.println("College Rank: 10 (demonstration value)");
-    }
-}
+College college = new College();
+college.collegeName();
 ```
 
-Although we write no `extends` clause here, `College` implicitly extends `java.lang.Object`.
+Here, `new College()` creates a `College` object and `collegeName()` prints a line of text. This project also shows how an object of a subclass can use methods provided by its superclasses.
 
-### dept.java — extends College
+## 2. The inheritance chain
 
-Location: `src/org/college/dept.java`
-
-```java
-package org.college;
-
-public class dept extends College {
-
-    public void deptName() {
-        System.out.println("Department Name: Computer Science");
-    }
-}
-```
-
-`dept` inherits the three accessible college methods and adds `deptName()`. Do not copy the college methods into this file.
-
-### Hostel.java — extends dept
-
-Location: `src/org/college/Hostel.java`
-
-```java
-package org.college;
-
-public class Hostel extends dept {
-
-    public void HostelName() {
-        System.out.println("Hostel Name: Example Residence");
-    }
-}
-```
-
-`Hostel` inherits the department and college methods, then adds `HostelName()`.
-
-### Student.java — extends Hostel and contains main
-
-Location: `src/org/college/Student.java`
-
-```java
-package org.college;
-
-public class Student extends Hostel {
-
-    public void studentName() {
-        System.out.println("Student Name: Alex Morgan");
-    }
-
-    public void studentDept() {
-        System.out.println("Student Department: Computer Science");
-    }
-
-    public void studentId() {
-        System.out.println("Student ID: STU001");
-    }
-
-    public static void main(String[] args) {
-        var student = new Student();
-
-        student.collegeName();
-        student.collegeCode();
-        student.collegeRank();
-        student.deptName();
-        student.HostelName();
-        student.studentName();
-        student.studentDept();
-        student.studentId();
-    }
-}
-```
-
-This creates **one explicit object** and makes **eight method calls** through it.
-
-Do not create separate `College`, `dept`, and `Hostel` objects just to call their methods here. Separate objects would not demonstrate the requested inherited access through `Student`.
-
-## 6. Trace a call through the chain
-
-Consider:
-
-```java
-student.collegeName();
-```
-
-For this example, the method definition comes from `College`, reached through the inheritance hierarchy:
+Inheritance lets a subclass extend a superclass. The subclass can add behavior and use accessible inherited members.
 
 ```text
-Student -> Hostel -> dept -> College
+College
+   ↑
+Dept
+   ↑
+Hostel
+   ↑
+Student
 ```
 
-There is no need to redeclare `collegeName()` in every subclass. There is also no overriding in this exercise: each required method is declared only once.
+Each arrow means **“extends.”** For example, `Student` extends `Hostel`, which extends `Dept`, which extends `College`.
 
-The reference variable `student` has inferred type `Student`. Its accessible methods include the inherited public instance methods and its own public instance methods.
+The declarations in this project are:
 
-## 7. Access control: the beginner's accurate table
+```java
+public class College { ... }
+public class Dept extends College { ... }
+public class Hostel extends Dept { ... }
+public class Student extends Hostel { ... }
+```
 
-The usual Java term is **access modifier**. Package-private access is selected by writing no access modifier.
+This is **multilevel inheritance**: a class extends a class that itself extends another class. `Hostel` is the direct superclass of `Student`; `Dept` and `College` are indirect superclasses, also called ancestors. A Java class has at most one direct superclass, but it can have multiple ancestors. `College` implicitly extends `java.lang.Object`.
 
-For ordinary class members, ignoring module-system restrictions:
+### A modeling caveat
 
-| Access | Declaring class | Other classes in same package | Subclass in another package | Unrelated class in another package |
+This chain is useful for demonstrating Java syntax, but it is not a good model for a real college: a student is not a kind of hostel, and a hostel is not a kind of department. In a real application, a student could instead *have* a department or a reference to a hostel. Choose inheritance for a genuine **“is-a”** relationship; consider composition or association for **“has-a”** relationships.
+
+## 3. Follow the source code
+
+All eight methods in this example are public instance methods. Each is declared in one class and prints a fixed value.
+
+| Class | Direct superclass | Methods declared in the class |
+|---|---|---|
+| `College` | `Object` (implicit) | `collegeName()`, `collegeCode()`, `collegeRank()` |
+| `Dept` | `College` | `deptName()` |
+| `Hostel` | `Dept` | `HostelName()` |
+| `Student` | `Hostel` | `studentName()`, `studentDept()`, `studentId()` |
+
+`Student` has access to the five public methods declared in its ancestors as well as the three methods it declares itself. The source does not override any of these eight methods.
+
+The entry point is in `Student.java`:
+
+```java
+public static void main(String[] args) {
+    var student = new Student();
+
+    student.collegeName();
+    student.collegeCode();
+    student.collegeRank();
+    student.deptName();
+    student.HostelName();
+    student.studentName();
+    student.studentDept();
+    student.studentId();
+}
+```
+
+`main` is the entry point when the class is launched. It is `static`, so it belongs to the class rather than to an individual object. The eight methods it calls are instance methods, so `main` first creates a `Student` object and calls the methods through `student`.
+
+`var` asks the compiler to infer the local variable's type from the initializer. In this example, `student` has type `Student`; it is not dynamically typed. The declaration could also be written:
+
+```java
+Student student = new Student();
+```
+
+### Trace an inherited method
+
+For `student.collegeName()`, the method is declared in `College`. Because `Student` extends `Hostel`, `Hostel` extends `Dept`, and `Dept` extends `College`, the public method is available through the `Student` object.
+
+```text
+Student → Hostel → Dept → College: collegeName()
+```
+
+No separate `College` object is needed for this call, and the method does not need to be copied into every subclass.
+
+## 4. What happens when a student is created?
+
+```java
+Student student = new Student();
+```
+
+This expression creates one `Student` object. Initialization includes the superclass constructor chain, from `Object` through `College`, `Dept`, and `Hostel` to `Student`. Because these classes do not declare constructors, Java supplies a no-argument constructor for each of them.
+
+The superclass parts are initialized as part of the same object; creating a `Student` this way does **not** create separate `College`, `Dept`, and `Hostel` objects.
+
+Inheritance is a way to express a relationship and reuse or specialize behavior. It does **not** automatically save memory: a subclass object includes its inherited instance state, and method code is not copied into every object.
+
+## 5. Access control
+
+Access modifiers determine where a member can be accessed. For ordinary class members, the following table summarizes the rules, ignoring Java module restrictions:
+
+| Member access | Declaring class | Other classes in the same package | Subclass in another package | Unrelated class in another package |
 |---|---|---|---|---|
 | `public` | Yes | Yes | Yes | Yes |
 | `protected` | Yes | Yes | Yes, with restrictions | No |
-| No modifier: package-private | Yes | Yes | No | No |
+| No modifier (package-private) | Yes | Yes | No | No |
 | `private` | Yes | No | No | No |
 
-For `private`, nested classes belonging to the same enclosing top-level class have special access; that is outside this exercise.
+Some important details:
 
-### Important details
+- **Public:** accessible wherever the declaring type and member are accessible.
+- **Protected:** accessible within the package and, outside the package, from subclass code subject to restrictions. For example, an outside-package subclass cannot access a protected instance member through an arbitrary superclass instance.
+- **Package-private:** selected by omitting the access modifier; it is not written using a `default` access keyword.
+- **Private:** accessible within the declaring class, but a private superclass method is not inherited by a subclass. Nested classes have special access rules beyond this introductory example.
 
-- `default` is **not** the access keyword you write for a package-private method. You omit the modifier.
-- Ordinary top-level classes can be `public` or package-private, not `private` or `protected`.
-- A private superclass method is not inherited by a subclass.
-- Outside the declaring package, protected instance-member access is available through subclass code but is restricted: a subclass cannot freely access that member on an arbitrary superclass instance.
-- All four classes here share a package. Consequently, a package-private or protected version of these methods could still be accessible here; this setup alone does not demonstrate the cross-package protected rule.
+Top-level classes can be `public` or package-private; they cannot be declared `private` or `protected`.
 
-For the submitted solution, we keep the required methods public to make the inheritance behavior clear.
+All four project classes are in `org.college`, and their methods are public. The current program therefore illustrates public inherited access, **not** the cross-package `protected` restrictions. Changing a method to package-private would still allow access from these same-package classes; it would not, by itself, demonstrate access from another package.
 
-### A tiny package-private example
+### Example: package-private method
+
+This illustrative method has no access modifier:
 
 ```java
 void collegeCode() {
@@ -316,174 +181,116 @@ void collegeCode() {
 }
 ```
 
-There is no access modifier before `void`, so this method is package-private. Do not apply this variation unless you are deliberately experimenting; keep the main solution above consistent.
+It is accessible to other classes in the same package, but not to a class in a different package. The actual project keeps `collegeCode()` public.
 
-## 8. Compile and run
+## 6. Inheritance, overriding, and interfaces
 
-Save all four Java files. From the `CollegeInformation` project root:
+The current example **inherits** methods without changing their implementations. A subclass can also **override** an inherited instance method to provide its own implementation, provided Java's overriding rules are followed. For example, this is a separate illustration, not code currently in the project:
+
+```java
+class ExampleCollege {
+    public void describe() {
+        System.out.println("College");
+    }
+}
+
+class ExampleStudent extends ExampleCollege {
+    @Override
+    public void describe() {
+        System.out.println("Student");
+    }
+}
+```
+
+If a reference of type `ExampleCollege` refers to an `ExampleStudent` object, calling `describe()` invokes the student's override. This runtime selection of an overridden method is one form of **polymorphism**. It differs from **overloading**, where methods have the same name but different parameter lists.
+
+Java does not allow a class to extend multiple classes, such as `class C extends A, B`. A class can implement multiple interfaces, which provide multiple types and may provide default methods. Interfaces are not needed for this exercise.
+
+## 7. Compile and run
+
+From the project root, check that the source files are saved, then run:
 
 ```bash
-javac --release 25 -d out src/org/college/*.java
+javac -encoding UTF-8 -d out src/org/college/College.java src/org/college/Dept.java src/org/college/Hostel.java src/org/college/Student.java
 java -cp out org.college.Student
 ```
 
-Use the class name `org.college.Student` in the launch command so you test the compiled bytecode under `out`, not the source-file launch workflow.
+The first command compiles the source files into the `out` directory. `-encoding UTF-8` specifies the source encoding, which matters for the accented character in `Student.java`. The second command sets `out` as the classpath and starts `Student` using its fully qualified class name, `org.college.Student`.
 
-Expected output:
+The expected output from the current source is:
 
 ```text
-College Name: Example College
+College Name: Ushindi
 College Code: COL001
-College Rank: 10 (demonstration value)
-Department Name: Computer Science
-Hostel Name: Example Residence
-Student Name: Alex Morgan
-Student Department: Computer Science
+College Rank: 10(demostration value)
+Department NAme: Computer Science
+Hostel Name: TestSol Residence
+Student Name: Steven Ainé
+Student Department: Software Engineering
 Student ID: STU001
 ```
 
-For later edits, compile and run only on successful compilation:
+The capitalization and spelling above reflect the strings currently in the code. The department and student department are also different fixed demonstration values; the program does not validate their consistency.
+
+To avoid accidentally running old class files after a failed compilation, combine the commands in a shell that supports `&&`:
 
 ```bash
-javac --release 25 -d out src/org/college/*.java && java -cp out org.college.Student
+javac -encoding UTF-8 -d out src/org/college/College.java src/org/college/Dept.java src/org/college/Hostel.java src/org/college/Student.java && java -cp out org.college.Student
 ```
 
-## 9. Test your understanding with one controlled change
+The repository's `.gitignore` excludes `out/` and compiled `.class` files.
 
-Before your final commit:
+## 8. Practice exercises
 
-1. Temporarily change `Student extends Hostel` to just `Student`.
-2. Recompile.
-3. Observe that the calls to the five ancestor methods no longer resolve.
-4. Restore `extends Hostel`.
-5. Recompile and run successfully.
+Try these in a copy of the project, or restore any temporary source changes afterwards.
 
-This shows that the inherited method access comes from the superclass chain, not merely from sharing a package.
+1. **Trace the chain:** Identify where each of the eight methods is declared. Which five are inherited by `Student`?
+2. **Remove a link:** Temporarily change `Student extends Hostel` to `Student`, then compile. Which calls fail? Restore `extends Hostel` and compile again. The classes are still in the same package, but package membership alone does not give a `Student` object the methods of unrelated classes.
+3. **Explore private access:** Temporarily change `College.collegeName()` from `public` to `private`, then compile. Explain the error at the call in `Student.main`. Restore `public` and verify the program runs again.
+4. **Try overriding:** In a separate copy, override `collegeName()` in `Student` and print a different message. Run the program and compare the result. Add `@Override` so the compiler checks that the method overrides an inherited method.
+5. **Discuss design:** Sketch a model in which a student has a department and may be assigned to a hostel. Explain why object references would better represent those relationships.
 
-Do not submit the intentionally broken experiment.
+### Questions for review
 
-## 10. Add a README
+1. What are the direct and indirect superclasses of `Student`?
+2. Why can a `Student` object call `collegeName()`?
+3. Why does `main` create an object before calling these instance methods?
+4. Does `new Student()` create four separate objects?
+5. What is the difference between package-private and `protected` access?
+6. Why is the current inheritance chain questionable outside a teaching exercise?
 
-Create `README.md`:
+### Suggested answers
 
-````markdown
-# CollegeInformation
+1. `Hostel` is the direct superclass; `Dept` and `College` are indirect superclasses. `Object` is also an ancestor.
+2. `collegeName()` is public and inherited through the superclass chain.
+3. `main` is static, while the methods it calls require an instance.
+4. No. It creates one `Student` object, initialized through the superclass constructor chain.
+5. Package-private members are accessible within their package. Protected members are also accessible in their package and can be accessed from outside-package subclasses under additional restrictions.
+6. The relationships do not describe true “is-a” relationships: a student is not a hostel, and a hostel is not a department.
 
-Day 2 — Multilevel inheritance and access control.
+## 9. Troubleshooting
 
-## Objective
-
-Use one Student object to call the required methods declared in
-College, dept, Hostel, and Student.
-
-## Inheritance chain
-
-College -> dept -> Hostel -> Student
-
-Arrows mean "is extended by." This order is an assumption because
-the task does not specify the intermediate superclass order.
-
-This is an inheritance exercise, not a recommended real-world domain model.
-
-## Naming
-
-The names dept and HostelName() intentionally match the assignment.
-Conventional alternatives would be Department and hostelName().
-
-## Requirements
-
-JDK 25. No external dependencies.
-
-## Compile and run
-
-From the project root:
-
-```bash
-javac --release 25 -d out src/org/college/*.java
-java -cp out org.college.Student
-```
-
-## Concepts practiced
-
-- Multilevel class inheritance using extends
-- Direct and indirect superclasses
-- Calling inherited instance methods through a subclass object
-- Public, protected, package-private, and private access distinctions
-
-All printed details are fictional demonstration data.
-````
-
-## 11. Commit and publish separately
-
-Check repository boundaries first:
-
-```bash
-git rev-parse --show-toplevel
-```
-
-If it reports **not a git repository**, initialize:
-
-```bash
-git init -b main
-```
-
-If it prints this project's directory, skip initialization. If it prints a parent directory, resolve the layout before creating a nested repository.
-
-Stage and review:
-
-```bash
-git add src/org/college/College.java src/org/college/dept.java src/org/college/Hostel.java src/org/college/Student.java .vscode/settings.json .gitignore README.md
-git diff --cached --stat
-git diff --cached
-```
-
-Then commit:
-
-```bash
-git commit -m "Complete CollegeInformation multilevel inheritance exercise"
-```
-
-Create an empty GitHub repository named `CollegeInformation`. If using the same account as your earlier projects, and no origin exists yet:
-
-```bash
-git remote add origin https://github.com/ub-victoire/CollegeInformation.git
-git push -u origin main
-git status
-```
-
-Use the actual repository URL if it differs. Verify the hosted files before submitting.
-
-## 12. Troubleshooting
-
-| Error or symptom | Check |
+| Symptom | What to check |
 |---|---|
-| `cannot find symbol: class dept` | Use lowercase `dept` consistently and filename `dept.java`. |
-| `cannot find symbol: method hostelName()` | The assignment-preserving method is `HostelName()` with uppercase H. |
-| Ancestor methods cannot be found | Check every link: `dept extends College`, `Hostel extends dept`, `Student extends Hostel`. |
-| `cyclic inheritance` | A class must not eventually extend itself. Check that the chain is one-way. |
-| Private-access error | A private superclass method cannot be invoked as an inherited method from the subclass. |
-| `non-static method ... cannot be referenced from a static context` | Call through `student`, not directly from static main. |
-| Output appears unchanged after a failed compile | Do not run stale output; use the compile-and-run command joined with `&&`. |
+| `javac: command not found` | Install a JDK and make sure its `bin` directory is on your `PATH`. |
+| `cannot find symbol: class Dept` | Check `Dept` capitalization and compile all four source files together. |
+| `cannot find symbol: method hostelName()` | The method in this project is `HostelName()`, with an uppercase `H`. |
+| Ancestor methods cannot be found | Check the chain: `Dept extends College`, `Hostel extends Dept`, and `Student extends Hostel`. |
+| `cyclic inheritance` | Make sure no class eventually extends itself. |
+| Private-access error | A private superclass method is not inherited; check the method's access modifier. |
+| `non-static method ... cannot be referenced from a static context` | Call the instance method on an object, such as `student.collegeName()`. |
+| `Could not find or load main class` | Compile from the project root and run `java -cp out org.college.Student`. |
+| Output does not reflect an edit | Confirm compilation succeeded before running; use `&&` where supported. |
+| Accented text displays incorrectly | Compile with `-encoding UTF-8` and check your terminal's character encoding. |
 
-## 13. Submission checklist
+## Lesson checklist
 
-- [ ] Four classes belong to `org.college`.
-- [ ] Class and method spellings match the assignment-preserving solution.
-- [ ] The inheritance chain has four levels ending at `Student`.
-- [ ] Methods are declared in their required classes, not copied into `Student`.
-- [ ] `Student.main` creates one Student object.
-- [ ] All eight required methods are called through that object.
-- [ ] Compilation succeeds and execution prints eight lines.
-- [ ] README states the chain assumption and naming exceptions.
-- [ ] Generated files and backups are not committed.
-- [ ] Source and documentation are pushed to the repository.
+- [ ] I can explain the superclass chain and trace an inherited method.
+- [ ] I can compile and run the project and account for all eight output lines.
+- [ ] I can distinguish public, protected, package-private, and private member access.
+- [ ] I understand why the chain demonstrates inheritance but is not a good real-world domain model.
+- [ ] I restored any experimental changes and confirmed the program still runs.
 
-## 14. Explain these before moving on
+---
 
-1. What is Student's direct superclass? What are its other ancestors?
-2. How can Student call collegeName() without declaring it?
-3. Does new Student() create a separate College object too?
-4. Why is inheritance not automatically a memory-saving technique?
-5. Why is this chain acceptable as an exercise but questionable as a real-world model?
-
-**Next checkpoint:** share all four source files and the output from `java -cp out org.college.Student`. The output demonstrates behavior; the source is necessary to verify the inheritance structure.
+**Done by Ushindi B. Victoire**, Software Q.A Engineer | Requirement Specialist | @ub-victoire @ub-victor
