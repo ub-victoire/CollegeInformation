@@ -487,4 +487,3 @@ Use the actual repository URL if it differs. Verify the hosted files before subm
 5. Why is this chain acceptable as an exercise but questionable as a real-world model?
 
 **Next checkpoint:** share all four source files and the output from `java -cp out org.college.Student`. The output demonstrates behavior; the source is necessary to verify the inheritance structure.
-
